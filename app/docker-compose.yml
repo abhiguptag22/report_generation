@@ -1,0 +1,73 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: qwerty12
+      POSTGRES_DB: tasks
+    networks:
+      - mynetwork
+
+  redis:
+    image: redis:7
+    networks:
+      - mynetwork
+
+  django:
+    build: .
+    command: >
+      sh -c "poetry run python manage.py makemigrations &&
+             poetry run python manage.py migrate &&
+             poetry run python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DB_NAME=tasks
+      - DB_USER=postgres
+      - DB_PASSWORD=qwerty12
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    networks:
+      - mynetwork
+
+  flower:
+    build: .
+    command: >
+      sh -c "poetry run celery -A myproject.celery.app flower --broker=redis://redis:6379/0"
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+    networks:
+      - mynetwork
+
+  celery:
+    build: .
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    command: poetry run celery -A myproject worker --loglevel=info
+    volumes:
+      - .:/app
+    depends_on:
+      - django
+      - redis
+    networks:
+      - mynetwork
+
+volumes:
+  postgres_data:
+
+networks:
+  mynetwork:
+    driver: bridge
