@@ -1,0 +1,42 @@
+<!-- Add links for generating HTML and PDF -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Assignment Feedback Reports</h1>
+    <div style="display: flex; justify-content: space-between;">
+      <!-- Column for HTML tasks -->
+      <div style="width: 45%;">
+          <h2>HTML Tasks</h2>
+          <ul>
+              {% for task in tasks %}
+                  {% if task.task_type == 'html' %}
+                      <li>
+                          <a href="{% url 'task_detail_html' task.task_id %}">{{ task.task_id }}</a>
+                      </li>
+                  {% endif %}
+              {% endfor %}
+          </ul>
+      </div>
+    
+      <!-- Column for PDF tasks -->
+      <div style="width: 45%;">
+          <h2>PDF Tasks</h2>
+          <ul>
+              {% for task in tasks %}
+                  {% if task.task_type == 'pdf' %}
+                      <li>
+                          <a href="{% url 'task_details_pdf' task.task_id %}">{{ task.task_id }}</a>
+                      </li>
+                  {% endif %}
+              {% endfor %}
+          </ul>
+      </div>
+    </div>
+</body>
+</html>
